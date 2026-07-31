@@ -93,10 +93,17 @@ if not st.session_state["logged_in"]:
 # 📊 DASHBOARDS (AFTER AUTHENTICATION)
 # ==========================================
 else:
+<<<<<<< Updated upstream
     # Sidebar Profile & Logout
     st.sidebar.markdown(f"### 👤 Logged in as: **{st.session_state['user_name']}**")
     st.sidebar.caption(f"Role Level: **{st.session_state['user_role']}**")
     st.sidebar.button("🚪 Logout", on_click=logout, use_container_width=True)
+=======
+    # Sidebar Session Header
+    st.sidebar.markdown(f"### 👤 User: **{st.session_state['user_name']}**")
+    st.sidebar.caption(f"Role: **{st.session_state['user_role']}**")
+    st.sidebar.button("🚪 Logout", on_click=logout, width="stretch")
+>>>>>>> Stashed changes
     st.sidebar.markdown("---")
 
     # ------------------------------------------
