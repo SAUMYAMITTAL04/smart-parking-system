@@ -7,8 +7,6 @@ import streamlit as st
 
 
 def render_executive_view():
-    st.set_page_config(layout="wide")
-
     st.title("📊 Executive Performance & BI Analytics")
     st.markdown(
         "Real-time enterprise overview, occupancy heatmaps, and financial metrics."
@@ -18,11 +16,9 @@ def render_executive_view():
     # -------------------------------------------------------------------------
     # 1. DATA LOADING & PREPARATION
     # -------------------------------------------------------------------------
-    # Retrieve dataframe from session state or load fallback
     if "transactions_df" in st.session_state:
         df = st.session_state["transactions_df"].copy()
     else:
-        # Dummy data generator for structural context if session state is missing
         np.random.seed(42)
         dates = pd.date_range(end=datetime.datetime.now(), periods=500, freq="15min")
         df = pd.DataFrame(
@@ -36,7 +32,6 @@ def render_executive_view():
             }
         )
 
-    # --- FIX 1: Timestamp & Numeric Cleaning ---
     df["timestamp"] = pd.to_datetime(df["entry_time"], format="mixed", errors="coerce")
     df["fee"] = pd.to_numeric(df["fee"], errors="coerce").fillna(0)
 
@@ -108,7 +103,6 @@ def render_executive_view():
     with col_chart:
         st.markdown("### 📈 Revenue Trajectory & Traffic Volume")
         
-        # --- FIX 2: Lowercase 'h' for resampling frequency ---
         timeline_df = (
             df_filtered.set_index("timestamp")
             .resample("3h")["fee"]
@@ -130,14 +124,13 @@ def render_executive_view():
             height=320,
             hovermode="x unified",
         )
-        st.plotly_chart(fig_line, width="stretch")
+        st.plotly_chart(fig_line, use_container_width=True)
 
     with col_gauge:
         st.markdown("### 🎯 Monthly Target Yield")
         
-        monthly_target = 500000  # Set monthly goal
+        monthly_target = 500000
 
-        # --- FIX 3: Target Gauge Metric Calibration ---
         fig_gauge = go.Figure(
             go.Indicator(
                 mode="number+gauge+delta",
@@ -167,12 +160,12 @@ def render_executive_view():
             )
         )
         fig_gauge.update_layout(height=320, margin=dict(l=20, r=20, t=30, b=20))
-        st.plotly_chart(fig_gauge, width="stretch")
+        st.plotly_chart(fig_gauge, use_container_width=True)
 
     st.markdown("---")
 
     # -------------------------------------------------------------------------
-    # 5. OCCUPANCY HEATMAP (BY DAY & HOUR)
+    # 5. OCCUPANCY HEATMAP
     # -------------------------------------------------------------------------
     st.markdown("### 🔥 Hourly Occupancy & Demand Heatmap")
 
@@ -189,12 +182,11 @@ def render_executive_view():
         "Sunday",
     ]
 
-    # --- FIX 4: Complete Matrix Reindex & Dynamic Axes matching ---
     heatmap_data = (
         df_filtered.groupby(["day_name", "hour"])
         .size()
         .unstack(fill_value=0)
-        .reindex(columns=range(24), fill_value=0)  # Guarantees exactly 24 columns (0 to 23)
+        .reindex(columns=range(24), fill_value=0)
         .reindex(days_order)
         .fillna(0)
     )
@@ -208,7 +200,7 @@ def render_executive_view():
         color_continuous_scale="Viridis",
     )
     fig_heatmap.update_layout(height=350, margin=dict(l=20, r=20, t=20, b=20))
-    st.plotly_chart(fig_heatmap, width="stretch")
+    st.plotly_chart(fig_heatmap, use_container_width=True)
 
     st.markdown("---")
 
@@ -231,7 +223,7 @@ def render_executive_view():
                 color_discrete_sequence=px.colors.qualitative.Pastel,
             )
             fig_pie.update_layout(height=300, margin=dict(l=10, r=10, t=10, b=10))
-            st.plotly_chart(fig_pie, width="stretch")
+            st.plotly_chart(fig_pie, use_container_width=True)
 
     with dist_col2:
         st.markdown("### 🏗️ Zone Yield Distribution")
@@ -253,7 +245,7 @@ def render_executive_view():
                 color_continuous_scale="Blues",
             )
             fig_bar.update_layout(height=300, margin=dict(l=10, r=10, t=10, b=10))
-            st.plotly_chart(fig_bar, width="stretch")
+            st.plotly_chart(fig_bar, use_container_width=True)
 
     # -------------------------------------------------------------------------
     # 7. RAW TRANSACTIONS DATA TABLE
@@ -273,9 +265,5 @@ def render_executive_view():
                     if col in df_filtered.columns
                 ]
             ].sort_values(by="timestamp", ascending=False),
-            width="stretch",
+            use_container_width=True,
         )
-
-
-if __name__ == "__main__":
-    render_executive_view()
