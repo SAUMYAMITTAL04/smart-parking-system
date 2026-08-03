@@ -1,14 +1,26 @@
 import os
 import cv2
+import io
 import streamlit as st
 import pandas as pd
-from datetime import datetime, timedelta
+from datetime import datetime
 from src.detector import ParkingDetector
 
-def render_customer_view():
-    st.set_page_config(page_title="Driver Portal", page_icon="📲", layout="wide")
+def generate_qr_image(data_str: str):
+    """Generates an in-memory QR code image byte buffer."""
+    try:
+        import qrcode
+        qr = qrcode.QRCode(version=1, box_size=6, border=2)
+        qr.add_data(data_str)
+        qr.make(fit=True)
+        img = qr.make_image(fill_color="black", back_color="white")
+        buf = io.BytesIO()
+        img.save(buf, format="PNG")
+        return buf.getvalue()
+    except ImportError:
+        return None
 
-    # Header section with dynamic operational badge
+def render_customer_view():
     col_head1, col_head2 = st.columns([3, 1])
     with col_head1:
         st.title("📲 Live Driver Navigation & Parking Portal")
@@ -29,7 +41,7 @@ def render_customer_view():
         if ret:
             _, empty, occupied = detector.process_frame(frame)
         else:
-            empty, occupied = 18, 42  # Production fallback data
+            empty, occupied = 18, 42
     else:
         empty, occupied = 12, 48
 
@@ -61,7 +73,6 @@ def render_customer_view():
     with nav_col1:
         st.subheader("🗺️ Real-Time Zone Breakdown & Spot Allocation")
         
-        # Simulated Zone Availability breakdown based on total count
         zones_data = [
             {"Zone": "Zone A (Ground Floor - North)", "Type": "Standard", "Open": max(0, int(empty * 0.4)), "Total": 20, "Status": "Open"},
             {"Zone": "Zone B (Ground Floor - South)", "Type": "Standard", "Open": max(0, int(empty * 0.3)), "Total": 20, "Status": "Open"},
@@ -70,7 +81,6 @@ def render_customer_view():
         ]
         df_zones = pd.DataFrame(zones_data)
         
-        # Display styled interactive table
         st.dataframe(
             df_zones,
             column_config={
@@ -104,8 +114,14 @@ def render_customer_view():
             st.caption("Includes automated ANPR ticketless entry & exit grace period (15 mins).")
 
             if st.button("🎫 Generate Digital Express Entry Pass", width="stretch"):
+                pass_code = f"PARK-EXPRESS-{datetime.now().strftime('%Y%m%d%H%M')}"
                 st.success("Pass Generated! Scan your vehicle registration at barrier entrance.")
-                st.qr_code(f"PARK-EXPRESS-{datetime.now().strftime('%Y%m%m%H%M')}")
+                
+                qr_bytes = generate_qr_image(pass_code)
+                if qr_bytes:
+                    st.image(qr_bytes, caption=f"Express Entry Pass Code: {pass_code}", width=220)
+                else:
+                    st.code(pass_code, language="text")
 
     st.markdown("---")
     st.caption("Smart Parking Enterprise System • ANPR & RFID Active Gates • Live Support: +91 1800-PARK-NOW")
