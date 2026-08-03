@@ -1,5 +1,4 @@
 import streamlit as st
-
 USERS = {
     "driver": {"password": "user123", "role": "Customer", "name": "Valued Guest"},
     "manager": {"password": "admin123", "role": "Manager", "name": "Operations Manager"},
