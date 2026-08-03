@@ -2,7 +2,6 @@ import cv2
 import json
 import os
 
-# Paths configuration
 VIDEO_PATH = os.path.join('data', 'parking_video.mp4')
 OUTPUT_JSON = os.path.join('data', 'slots.json')
 
